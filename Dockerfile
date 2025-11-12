@@ -5,21 +5,26 @@ FROM python:3.11-slim
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# ---- Create Virtual Environment ----
-RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-
 # ---- Set Working Directory ----
 WORKDIR /app
 
-# ---- Copy Requirements and Install ----
-COPY requirements.txt /tmp/requirements.txt
-RUN pip install --upgrade pip && \
-    pip install -r /tmp/requirements.txt
+# ---- Copy Only Requirements First (for caching) ----
+COPY requirements.txt .
+
+# ---- Install Dependencies ----
+RUN python -m venv /opt/venv \
+    && /opt/venv/bin/pip install --upgrade pip \
+    && /opt/venv/bin/pip install -r requirements.txt
+
+# ---- Update PATH to use venv ----
+ENV PATH="/opt/venv/bin:$PATH"
 
 # ---- Copy Application Code ----
 COPY ./code .
 
+# ---- Expose Streamlit Port ----
+EXPOSE 8501
+
 # ---- Default Command ----
-# Streamlit runs your RAG interface
 CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+
