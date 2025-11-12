@@ -1,0 +1,11 @@
+services:
+  rag_app:
+    build: .
+    container_name: rag_app
+    ports:
+      - "8501:8501"
+    restart: unless-stopped
+    volumes:
+      - ./src:/app   # Optional for live code editing during development
+    environment:
+      - GROQ_API_KEY=${GROQ_API_KEY}
